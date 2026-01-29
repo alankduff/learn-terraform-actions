@@ -103,7 +103,23 @@ resource "aws_lambda_function" "api_handler" {
   environment {
     variables = {
       QUEUE_URL = aws_sqs_queue.job_queue.url
+    } 
+  }
+  lifecycle {
+    action_trigger {
+      events  = [after_create, after_update]
+      actions = [action.aws_lambda_invoke.api_handler]
     }
+  }
+}
+
+action "aws_lambda_invoke" "api_handler" {
+  config {
+    function_name = aws_lambda_function.api_handler.function_name
+    payload = jsonencode({
+      message = "Invoke lambda from action",
+      type    = "test"
+    })
   }
 }
 
@@ -143,3 +159,5 @@ module "http_api" {
     }
   }
 }
+
+
